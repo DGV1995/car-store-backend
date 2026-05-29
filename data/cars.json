@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "brand": "Toyota",
+    "model": "Camry",
+    "year": 2020,
+    "price": 24000.0,
+    "image_url": "https://example.com/images/toyota-camry-2020.jpg"
+  },
+  {
+    "id": 2,
+    "brand": "BMW",
+    "model": "X5",
+    "year": 2022,
+    "price": 55000.0,
+    "image_url": "https://example.com/images/bmw-x5-2022.jpg"
+  },
+  {
+    "id": 3,
+    "brand": "Toyota",
+    "model": "Corolla",
+    "year": 2021,
+    "price": 20000.0,
+    "image_url": "https://example.com/images/toyota-corolla-2021.jpg"
+  },
+  {
+    "id": 4,
+    "brand": "Honda",
+    "model": "Civic",
+    "year": 2020,
+    "price": 22000.0,
+    "image_url": "https://example.com/images/honda-civic-2020.jpg"
+  },
+  {
+    "id": 5,
+    "brand": "BMW",
+    "model": "X5",
+    "year": 2020,
+    "price": 52000.0,
+    "image_url": "https://example.com/images/bmw-x5-2020.jpg"
+  }
+]
