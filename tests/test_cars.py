@@ -1,41 +1,45 @@
 from __future__ import annotations
 
+import importlib
 import io
 import json
-import os
-import tempfile
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
-# Change working directory so data files are written inside the temp dir
-# We patch DATA_FILE / UPLOADS_DIR via monkeypatch in each test.
-from app.models.car import Car
-
 
 @pytest.fixture
 def client(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> TestClient:
-    """Create a TestClient with isolated temp directories for data and uploads."""
+    """Create a TestClient with isolated temp directories for data and uploads.
+
+    The fixture monkeypatches service-level paths and sets ``UPLOADS_DIR``
+    so that the ``main`` module mounts its ``/uploads`` static directory
+    at the temp path.  ``main`` is reloaded via ``importlib.reload`` to
+    ensure the mount picks up the environment-variable override.
+    """
     from app.services import car_service
     from app.services.car_service import DATA_FILE, UPLOADS_DIR
 
-    # Redirect data file and uploads to tmp_path
     test_data_file = tmp_path / "cars.json"
     test_uploads_dir = tmp_path / "uploads"
     test_uploads_dir.mkdir(parents=True, exist_ok=True)
 
     monkeypatch.setattr(car_service, "DATA_FILE", test_data_file)
     monkeypatch.setattr(car_service, "UPLOADS_DIR", test_uploads_dir)
-
-    # Also override the global DATA_DIR so _ensure_dirs uses the right paths
     monkeypatch.setattr(car_service, "DATA_DIR", tmp_path)
 
     # Write initial empty cars.json
     test_data_file.write_text("[]", encoding="utf-8")
 
-    # Now import and build app inside fixture to pick up monkeypatched paths
-    from main import app
+    # Set env var so main.py picks up the temp uploads dir via importlib.reload
+    monkeypatch.setenv("UPLOADS_DIR", str(test_uploads_dir))
+
+    # Reload main so the StaticFiles mount uses the temp directory
+    import main as main_module
+
+    main_module = importlib.reload(main_module)
+    app = main_module.app
 
     with TestClient(app) as c:
         yield c
@@ -394,3 +398,56 @@ def test_data_persistence(client: TestClient, tmp_path: Path) -> None:
 
     upload_files = list(UPLOADS_DIR.iterdir())
     assert len(upload_files) == 1
+
+
+# ── Static file serving ──────────────────────────────────────────────
+
+
+def test_uploaded_image_served_with_correct_content_type(client: TestClient) -> None:
+    """AC #2: Uploaded JPEG image is served with correct Content-Type header."""
+    img_data = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01"  # JPEG magic bytes
+    resp = client.post(
+        "/api/cars",
+        files={"image": ("test.jpg", io.BytesIO(img_data), "image/jpeg")},
+        data={"brand": "Test", "model": "Car", "year": 2023, "price": 30000},
+    )
+    assert resp.status_code == 201
+    image_url: str = resp.json()["image_url"]
+
+    # Fetch the image via the static mount
+    resp_img = client.get(image_url)
+    assert resp_img.status_code == 200, f"Expected 200, got {resp_img.status_code} for {image_url}"
+    assert resp_img.headers["content-type"] == "image/jpeg"
+
+
+def test_uploaded_png_image_served_with_correct_content_type(client: TestClient) -> None:
+    """AC #2: Uploaded PNG image is served with correct Content-Type header."""
+    img_data = b"\x89PNG\r\n\x1a\n"  # PNG magic bytes
+    resp = client.post(
+        "/api/cars",
+        files={"image": ("test.png", io.BytesIO(img_data), "image/png")},
+        data={"brand": "Test", "model": "Car", "year": 2023, "price": 30000},
+    )
+    assert resp.status_code == 201
+    image_url: str = resp.json()["image_url"]
+
+    # Fetch the image via the static mount
+    resp_img = client.get(image_url)
+    assert resp_img.status_code == 200, f"Expected 200, got {resp_img.status_code} for {image_url}"
+    assert resp_img.headers["content-type"] == "image/png"
+
+
+def test_uploaded_image_returns_image_bytes(client: TestClient) -> None:
+    """AC #2: Uploaded image is served with the exact bytes that were uploaded."""
+    img_data = b"my-original-image-bytes-content"
+    resp = client.post(
+        "/api/cars",
+        files={"image": ("photo.jpg", io.BytesIO(img_data), "image/jpeg")},
+        data={"brand": "Test", "model": "Car", "year": 2023, "price": 30000},
+    )
+    assert resp.status_code == 201
+    image_url: str = resp.json()["image_url"]
+
+    resp_img = client.get(image_url)
+    assert resp_img.status_code == 200
+    assert resp_img.content == img_data
