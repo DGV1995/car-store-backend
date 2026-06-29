@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.routers.cars import router as cars_router
+from app.routers.chat import router as chat_router
 
 app = FastAPI(
     title="Car Store API",
@@ -38,6 +39,7 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # ---- API routers ----
 app.include_router(cars_router)
+app.include_router(chat_router)
 
 
 @app.get("/health", tags=["health"])
