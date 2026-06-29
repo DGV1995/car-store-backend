@@ -1,0 +1,18 @@
+[project]
+name = "car-store-backend"
+version = "0.1.0"
+description = "Car Store Backend API — FastAPI application for managing car inventory"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "python-multipart>=0.0.12",
+    "pydantic>=2.0.0",
+]
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["setuptools>=75.0"]
+build-backend = "setuptools.build_meta"
