@@ -11,9 +11,9 @@ Importable via:
 
 import json
 import logging
-import os
 from typing import AsyncGenerator, List, Optional, Tuple
 
+from app.config import settings
 from app.services.file_service import read_cars
 
 logger = logging.getLogger(__name__)
@@ -89,11 +89,11 @@ async def run_chat_agent(
     Raises:
         RuntimeError: If the ADK agent fails to initialise or no API key is set.
     """
-    # Check for API key
-    api_key = os.environ.get("GOOGLE_API_KEY")
+    # Check for API key via the centralised settings
+    api_key = settings.deepseek_api_key
     if not api_key:
         logger.warning(
-            "GOOGLE_API_KEY not set. Chat agent will return a fallback response."
+            "DEEPSEEK_API_KEY not set. Chat agent will return a fallback response."
         )
         yield _build_fallback_response(history, user_message)
         return
@@ -106,7 +106,7 @@ async def run_chat_agent(
         # Create the agent with the get_cars tool
         agent = Agent(
             name="car_expert",
-            model=os.getenv("ADK_MODEL", "gemini-2.0-flash"),
+            model=settings.deepseek_model,
             instruction=_build_system_instruction(),
             tools=[_get_cars_tool],
         )

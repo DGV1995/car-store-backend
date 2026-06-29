@@ -13,9 +13,9 @@ FastAPI backend for the Car Store application.
    ```bash
    mkdir -p data uploads
    ```
-4. Set the Google API key (required for the AI chat agent):
+4. Set the DeepSeek API key (required for the AI chat agent):
    ```bash
-   export GOOGLE_API_KEY="your-gemini-api-key"
+   export DEEPSEEK_API_KEY="your-deepseek-api-key"
    ```
 5. Run the server:
    ```bash
@@ -41,16 +41,16 @@ The API will be available at `http://localhost:8000`.
 ### Start a new conversation
 
 ```bash
-curl -X POST http://localhost:8000/api/chat \
-  -H "Content-Type: application/json" \
+curl -X POST http://localhost:8000/api/chat \\
+  -H "Content-Type: application/json" \\
   -d '{"conversation_id": null, "message": "What cars do you have?"}'
 ```
 
 ### Continue an existing conversation
 
 ```bash
-curl -X POST http://localhost:8000/api/chat \
-  -H "Content-Type: application/json" \
+curl -X POST http://localhost:8000/api/chat \\
+  -H "Content-Type: application/json" \\
   -d '{"conversation_id": "<uuid>", "message": "Show me BMWs under 30000€"}'
 ```
 
@@ -77,6 +77,7 @@ The chat endpoint returns a **Server-Sent Events (SSE)** stream:
 .
 ├── app/
 │   ├── __init__.py
+│   ├── config.py        # Centralised settings (Pydantic BaseSettings)
 │   ├── main.py           # FastAPI app entrypoint
 │   ├── models.py         # Pydantic data models (Car + Chat)
 │   ├── routers/
@@ -100,9 +101,11 @@ The chat endpoint returns a **Server-Sent Events (SSE)** stream:
 
 ## Environment Variables
 
-| Variable         | Required | Default            | Description                    |
-|------------------|----------|--------------------|--------------------------------|
-| `GOOGLE_API_KEY` | Yes*     | —                  | Google AI / Gemini API key     |
-| `ADK_MODEL`      | No       | `gemini-2.0-flash` | ADK model identifier           |
+| Variable           | Required | Default                      | Description                    |
+|--------------------|----------|------------------------------|--------------------------------|
+| `DEEPSEEK_API_KEY` | Yes*     | —                            | DeepSeek API key               |
+| `DEEPSEEK_MODEL`   | No       | `deepseek/deepseek-v4-flash` | DeepSeek model identifier      |
 
-*Without `GOOGLE_API_KEY` the chat agent falls back to a built-in rule-based response using `read_cars()` directly.
+*Without `DEEPSEEK_API_KEY` the chat agent falls back to a built-in rule-based response using `read_cars()` directly.
+
+Configuration can also be loaded from a `.env` file placed at the project root. See `app/config.py` for details.
