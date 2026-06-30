@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "id": "7534b651-a9a9-4fc6-9187-92c39f3f86b4",
+    "brand": "Ford",
+    "model": "Mustang",
+    "year": 2026,
+    "km": 10000,
+    "price": 55000.0,
+    "image_url": "/uploads/7534b651-a9a9-4fc6-9187-92c39f3f86b4.jpg"
+  },
+  {
+    "id": "29b625bb-8755-4b92-8aa0-a0eb1db024ce",
+    "brand": "Tesla",
+    "model": "Model 3",
+    "year": 2023,
+    "km": 55000,
+    "price": 35600.0,
+    "image_url": "/uploads/29b625bb-8755-4b92-8aa0-a0eb1db024ce.jpg"
+  }
+]
